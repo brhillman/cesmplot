@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-def main(inputfile, vname, outputfile):
+def main(inputfile, vname, outputfile, projection='robin'):
     import numpy, xarray
+    import matplotlib; matplotlib.use('Agg')
     from matplotlib import pyplot, animation
     from mpl_toolkits.basemap import Basemap
     import seaborn
@@ -29,8 +30,8 @@ def main(inputfile, vname, outputfile):
         vmin = data.min().values
         vmax = data.max().values
         if vmin < 0 and vmax > 0:
-            vmin = min(-vmin.abs(), -vmax.abs())
-            vmax = max(vmin.abs(), vmax.abs())
+            vmax = max(numpy.abs(vmin), numpy.abs(vmax))
+            vmin = -vmax
             cmap = pyplot.get_cmap('RdBu_r')
         else:
             cmap = pyplot.get_cmap('plasma')
@@ -41,6 +42,7 @@ def main(inputfile, vname, outputfile):
                             tri=True, cmap=cmap,
                             levels=numpy.linspace(vmin, vmax, 11),
                             extend='both')
+            ax.set_title('%s; time = %i'%(ds.case, i))
             return pl
 
         def init():
@@ -50,9 +52,9 @@ def main(inputfile, vname, outputfile):
                                  fraction=0.05)
             return pl
 
-        anim = FuncAnimation(figure, plotstep,
-                             frames=ds.time.size,
-                             init_func=init)
+        anim = animation.FuncAnimation(figure, plotstep,
+                                       frames=ds.time.size,
+                                       init_func=init)
         anim.save(outputfile)
 
 

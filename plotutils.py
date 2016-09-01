@@ -24,4 +24,3 @@ def plotmap(lon, lat, data, ax=None, **kw_args):
     # now we can contour, but pass in the pre-computed triangulation
     return m.contourf(x, y, data, tri=True,
                       triangles=triangulation.triangles, mask=mask, **kw_args)
-

@@ -2,6 +2,7 @@
 
 def main(inputfile, vname, outputfile=None, projection='robin'):
     import numpy, xarray
+    import matplotlib; matplotlib.use('Agg')
     from matplotlib import pyplot
     from mpl_toolkits.basemap import Basemap
     import seaborn
@@ -9,10 +10,11 @@ def main(inputfile, vname, outputfile=None, projection='robin'):
     with xarray.open_dataset(inputfile, decode_times=False) as ds:
 
         # setup axes
-        figure, ax = pyplot.subplots()
+        figure, ax = pyplot.subplots(figsize=(5, 3))
 
         # setup map
-        m = Basemap(projection=projection, lon_0=180)
+        #m = Basemap(projection=projection, lon_0=180)
+        m = Basemap(projection=projection, lon_0=0)
         x, y = m(ds.lon.values, ds.lat.values)
         m.drawcoastlines()
 
@@ -37,9 +39,11 @@ def main(inputfile, vname, outputfile=None, projection='robin'):
             cmap = pyplot.get_cmap('plasma')
 
         pl = m.contourf(x, y, data, tri=True, cmap=cmap,
+                        extend='both',
                         levels=numpy.linspace(vmin, vmax, 11))
 
-        cb = pyplot.colorbar(pl, orientation='horizontal', fraction=0.05,
+        cb = pyplot.colorbar(pl, orientation='horizontal', 
+                             fraction=0.05, pad=0.02,
                              label='%s (%s)'%(data.long_name, data.units))
 
         # calculate statistics
@@ -53,7 +57,7 @@ def main(inputfile, vname, outputfile=None, projection='robin'):
 
         # save figure
         if outputfile is not None:
-            figure.savefig(outputfile, format='pdf')
+            figure.savefig(outputfile, format='pdf', bbox_inches='tight')
         else:
             figure.show()
 

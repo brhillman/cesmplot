@@ -16,6 +16,7 @@ def main(inputfile, vname, outputfile, projection='robin'):
         data = ds[vname]
         if 'lev' in data.dims:
             print('Warning: data have multiple levels; selecting level 0')
+            #data = get_var_at_plev(ds, vname, 200)
             data = data.isel(lev=0)
 
         # setup figure
@@ -49,13 +50,63 @@ def main(inputfile, vname, outputfile, projection='robin'):
             pl = plotstep(0)
             cb = pyplot.colorbar(pl, orientation='horizontal',
                                  label='%s (%s)'%(data.long_name, data.units),
-                                 fraction=0.05)
+                                 fraction=0.05, pad=0.02)
             return pl
 
         anim = animation.FuncAnimation(figure, plotstep,
                                        frames=ds.time.size,
                                        init_func=init)
         anim.save(outputfile)
+
+
+def get_var_at_plev(ds, vname, plev):
+    import nclpy
+    vname_plev = '%s%0f'%(vname, plev)
+    if vname_plev in ds:
+        return ds[vname_plev]
+    else:
+        # Interpolate to pressure level
+        vint = nclpy.vinth2p(
+            ds[vname].transpose('time', 'ncol', 'lev'), ds.hyam, ds.hybm, 
+            1e-2 * ds.P0, ds.PS, numpy.array([plev,]),
+        )
+        
+        vint = xarray.DataArray(
+            vint, dims=('time', 'ncol', 'plev'), coords={'time': ds.time},
+            attrs={'long_name': '%.0f hPa %s'%(plev, ds[vname].long_name.lower()), 'units': ds[vname].units}
+        )
+        
+        # add to dataset
+        ds.update({vname_plev: vint})
+        
+        return vint
+    
+def get_var(ds, vname):
+    if vname == 'U850':
+        return get_var_at_plev(ds, 'U', 850)
+    elif vname == 'U500':
+        return get_var_at_plev(ds, 'U', 500)
+    elif vname == 'U250':
+        return get_var_at_plev(ds, 'U', 250)
+    if vname == 'V850':
+        return get_var_at_plev(ds, 'V', 850)
+    elif vname == 'V500':
+        return get_var_at_plev(ds, 'V', 500)
+    elif vname == 'V250':
+        return get_var_at_plev(ds, 'V', 250)
+    elif vname == 'Z500':
+        return get_var_at_plev(ds, 'Z3', 500)
+    elif vname == 'T850':
+        return get_var_at_plev(ds, 'T', 850)
+    elif vname == 'T250':
+        return get_var_at_plev(ds, 'T', 250)
+    elif vname == 'NETCF':
+        netcf = ds['SWCF'] + ds['LWCF']
+        netcf.attrs = ds['SWCF'].attrs
+        netcf.attrs.update({'long_name': 'Net cloud radiative effect'})
+        return  netcf
+    else:
+        return ds[vname]
 
 
 if __name__ == '__main__':

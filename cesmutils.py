@@ -39,36 +39,68 @@ def get_var_at_plev(ds, vname, plev):
     
     
 def get_var(ds, vname):
-    if vname == 'U850':
-        return get_var_at_plev(ds, 'U', 850)
+    if vname in ds.variables.keys():
+        dout = ds[vname]
+    elif vname == 'U850':
+        dout = get_var_at_plev(ds, 'U', 850)
     elif vname == 'U500':
-        return get_var_at_plev(ds, 'U', 500)
+        dout = get_var_at_plev(ds, 'U', 500)
     elif vname == 'U250':
-        return get_var_at_plev(ds, 'U', 250)
+        dout = get_var_at_plev(ds, 'U', 250)
     elif vname == 'U200':
-        return get_var_at_plev(ds, 'U', 200)
+        dout = get_var_at_plev(ds, 'U', 200)
     elif vname == 'U0':
-        return ds['U'].isel(lev=0)
+        dout = ds['U'].isel(lev=0)
     elif vname == 'V850':
-        return get_var_at_plev(ds, 'V', 850)
+        dout = get_var_at_plev(ds, 'V', 850)
     elif vname == 'V500':
-        return get_var_at_plev(ds, 'V', 500)
+        dout = get_var_at_plev(ds, 'V', 500)
     elif vname == 'V250':
-        return get_var_at_plev(ds, 'V', 250)
+        dout = get_var_at_plev(ds, 'V', 250)
     elif vname == 'Z500':
-        return get_var_at_plev(ds, 'Z3', 500)
+        dout = get_var_at_plev(ds, 'Z3', 500)
     elif vname == 'T850':
-        return get_var_at_plev(ds, 'T', 850)
+        dout = get_var_at_plev(ds, 'T', 850)
     elif vname == 'T250':
-        return get_var_at_plev(ds, 'T', 250)
+        dout = get_var_at_plev(ds, 'T', 250)
     elif vname == 'NETCF':
         netcf = ds['SWCF'] + ds['LWCF']
         netcf.attrs = ds['SWCF'].attrs
         netcf.attrs.update({'long_name': 'Net cloud radiative effect'})
-        return  netcf
+        dout = netcf
+    elif vname == 'cltmisr':
+        jhist = ds['CLD_MISR']
+        jhist = jhist.where(jhist.cosp_tau > 0.3)
+        d = jhist.sum(dim=('cosp_tau', 'cosp_htmisr'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('cosp_tau', 'cosp_htmisr')) > 0)
+        dout.attrs['long_name'] = 'Total cloud area'
+        dout.attrs['units'] = ds.CLD_MISR.units
+    elif vname == 'cllmisr':
+        jhist = ds['CLD_MISR']
+        jhist = jhist.where((jhist.cosp_tau > 0.3) & (jhist.cosp_htmisr > 0) & (jhist.cosp_htmisr < 3))
+        d = jhist.sum(dim=('cosp_tau', 'cosp_htmisr'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('cosp_tau', 'cosp_htmisr')) > 0)
+        dout.attrs['long_name'] = 'Low-topped cloud area'
+        dout.attrs['units'] = ds.CLD_MISR.units
+    elif vname == 'clmmisr':
+        jhist = ds['CLD_MISR']
+        jhist = jhist.where((jhist.cosp_tau > 0.3) & (jhist.cosp_htmisr > 3) & (jhist.cosp_htmisr < 7))
+        d = jhist.sum(dim=('cosp_tau', 'cosp_htmisr'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('cosp_tau', 'cosp_htmisr')) > 0)
+        dout.attrs['long_name'] = 'Mid-topped cloud area'
+        dout.attrs['units'] = ds.CLD_MISR.units
+    elif vname == 'clhmisr':
+        jhist = ds['CLD_MISR']
+        jhist = jhist.where((jhist.cosp_tau > 0.3) & (jhist.cosp_htmisr > 7))
+        d = jhist.sum(dim=('cosp_tau', 'cosp_htmisr'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('cosp_tau', 'cosp_htmisr')) > 0)
+        dout.attrs['long_name'] = 'High-topped cloud area'
+        dout.attrs['units'] = ds.CLD_MISR.units
     else:
-        return ds[vname]
+        raise NameError('Variable %s not found'%(vname))
     
+    return dout
+
 
 def get_datetimes(ds):
     import pandas

@@ -1,17 +1,41 @@
-def plotmap(lon, lat, data, ax=None, **kw_args):
+def plotmap(lon, lat, data, projection='robin', **kw_args):
+    if 'ncol' in data.dims:
+        return plotmap_unstructured(lon, lat, data, projection=projection, 
+                                    **kw_args)
+                                    
+    else:
+        return plotmap_lonlat(lon, lat, data, projection=projection,
+                              **kw_args)
+
+
+def plotmap_lonlat(lon, lat, data, projection='robin', **kw_args):
+    import numpy
+    from matplotlib import pyplot
+    from mpl_toolkits.basemap import Basemap
+
+    # set up the map
+    m = Basemap(projection=projection, lon_0=0)
+    lonm, latm = numpy.meshgrid(lon.values, lat.values, indexing='ij')
+    x, y = m(lonm, latm)
+
+    # draw coastlines
+    m.drawcoastlines()
+
+    # return contour plot
+    return m.contourf(x, y, data, **kw_args)
+
+
+def plotmap_unstructured(lon, lat, data, projection='robin', **kw_args):
     import numpy
     from matplotlib.tri import Triangulation
     from mpl_toolkits.basemap import Basemap
     
     # set up the map
-    m = Basemap(projection='robin', lon_0=0)
+    m = Basemap(projection=projection, lon_0=0)
     x, y = m(lon.values, lat.values)
 
-    # dress up the map
+    # draw coastlines
     m.drawcoastlines()
-
-    # check if we have unstructured data; if so, tri=True
-    # TODO: fix this...just assume tri is true for now...
 
     # might have missing data...that's a problem for tricontourf so
     # we need to set the mask ourselves. To do that, first set up the

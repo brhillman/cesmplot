@@ -1,3 +1,6 @@
+# Datasets
+*.nc
+
 # Plots
 *.pdf
 *.mp4

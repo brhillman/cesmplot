@@ -13,9 +13,15 @@ def main(inputfiles, outputdir):
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
 
-    varnames = ('cltmisr', 'cllmisr', 'clmmisr', 'clhmisr', 'CLDTOT', 'SOLIN')
-                #'cltisccp', 'cllisccp', 'clmisccp', 'clhisccp',
-                #'cltmodis', 'cllmodis', 'clmmodis', 'clhmodis')
+    varnames = ('cltmisr', 'cllmisr', 'clmmisr', 'clhmisr', 
+                'cltisccp', 'cllisccp', 'clmisccp', 'clhisccp',
+                'cltmodis', 'cllmodis', 'clmmodis', 'clhmodis',
+                'clwmodis', 'climodis', 'iwpmodis', 'lwpmodis', 'pctmodis',
+                'tautlogmodis', 'tauwlogmodis', 'tauilogmodis',
+                'tautmodis', 'tauwmodis', 'tauimodis',
+                'reffclwmodis', 'reffclimodis',
+                #'CLDTOT_CS', 'CLDTOT_CS2', 
+                'CLDTOT_CAL', 'CLDLOW_CAL', 'CLDMED_CAL', 'CLDHGH_CAL')
 
     # open files into a multi-file dataset
     print('Open files ', inputfiles)
@@ -53,6 +59,7 @@ def main(inputfiles, outputdir):
             # save figure
             figname = '%s/%s.%s'%(outputdir, vn, cn)
             figure.savefig(figname + '.pdf', format='pdf', bbox_inches='tight')
+            pyplot.close(figure)
 
 
 if __name__ == '__main__':

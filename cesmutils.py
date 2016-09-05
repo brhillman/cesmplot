@@ -128,6 +128,112 @@ def get_var(ds, vname):
         dout = d.where(jhist.notnull().sum(dim=('cosp_tau', 'cosp_prs')) > 0)
         dout.attrs['long_name'] = 'High-topped cloud area'
         dout.attrs['units'] = ds.FISCCP1_COSP.units
+    # MODIS fields from COSP
+    elif vname.lower() == 'clmodis':
+        dout = ds['CLMODIS']
+        dout = dout.rename({'cosp_tau_modis': 'tau', 'cosp_prs': 'plev'})
+    elif vname.lower() == 'cltmodis':
+        jhist = get_var(ds, 'clmodis')
+        jhist = jhist.where(jhist.tau > 0.3)
+        d = jhist.sum(dim=('tau', 'plev'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('tau', 'plev')) > 0)
+        dout.attrs['long_name'] = 'Total cloud area'
+        dout.attrs['units'] = ds.CLMODIS.units
+    elif vname.lower() == 'cllmodis':
+        jhist = get_var(ds, 'clmodis')
+        jhist = jhist.where((jhist.tau > 0.3) & (jhist.plev > 680))
+        d = jhist.sum(dim=('tau', 'plev'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('tau', 'plev')) > 0)
+        dout.attrs['long_name'] = 'Low-topped cloud area'
+        dout.attrs['units'] = ds.CLMODIS.units
+    elif vname.lower() == 'clmmodis':
+        jhist = get_var(ds, 'clmodis')
+        jhist = jhist.where((jhist.tau > 0.3) & (jhist.plev > 440) & (jhist.plev < 680))
+        d = jhist.sum(dim=('tau', 'plev'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('tau', 'plev')) > 0)
+        dout.attrs['long_name'] = 'Mid-topped cloud area'
+        dout.attrs['units'] = ds.CLMODIS.units
+    elif vname.lower() == 'clhmodis':
+        jhist = get_var(ds, 'clmodis')
+        jhist = jhist.where((jhist.tau > 0.3) & (jhist.plev < 440))
+        d = jhist.sum(dim=('tau', 'plev'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('tau', 'plev')) > 0)
+        dout.attrs['long_name'] = 'High-topped cloud area'
+        dout.attrs['units'] = ds.CLMODIS.units
+    elif vname.lower() == 'climodis':
+        dout = ds['CLIMODIS']
+    elif vname.lower() == 'clwmodis':
+        dout = ds['CLWMODIS']
+    elif vname.lower() == 'iwpmodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['IWPMODIS']
+        w = ds['CLIMODIS']
+        dout = d / w
+        dout.attrs = d.attrs
+    elif vname.lower() == 'lwpmodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['LWPMODIS']
+        w = ds['CLWMODIS']
+        dout = d / w
+        dout.attrs = d.attrs
+    elif vname.lower() == 'pctmodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['PCTMODIS']
+        w = ds['CLTMODIS']
+        dout = d / w
+        dout.attrs = d.attrs
+    elif vname.lower() == 'reffclimodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['REFFCLIMODIS']
+        w = ds['CLIMODIS']
+        dout = d / w
+        dout.attrs = d.attrs
+    elif vname.lower() == 'reffclwmodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['REFFCLWMODIS']
+        w = ds['CLWMODIS']
+        dout = d / w
+        dout.attrs = d.attrs
+    elif vname.lower() == 'tauilogmodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['TAUILOGMODIS']
+        w = ds['CLIMODIS']
+        dout = 10 ** (d / w)
+        dout.attrs = d.attrs
+    elif vname.lower() == 'tauwlogmodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['TAUWLOGMODIS']
+        w = ds['CLWMODIS']
+        dout = 10 ** (d / w)
+        dout.attrs = d.attrs
+    elif vname.lower() == 'tautlogmodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['TAUTLOGMODIS']
+        w = ds['CLTMODIS']
+        dout = 10 ** (d / w)
+        dout.attrs = d.attrs
+    elif vname.lower() == 'tauimodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['TAUIMODIS']
+        w = ds['CLIMODIS']
+        dout = d / w
+        dout.attrs = d.attrs
+    elif vname.lower() == 'tauwmodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['TAUWMODIS']
+        w = ds['CLWMODIS']
+        dout = d / w
+        dout.attrs = d.attrs
+    elif vname.lower() == 'tautmodis':
+        # Weighted by cloud amount in CAM run, need to divide here
+        d = ds['TAUTMODIS']
+        w = ds['CLTMODIS']
+        dout = d / w
+        dout.attrs = d.attrs
+    # CloudSat fields from COSP
+    elif vname.lower() == 'cfadDbze94':
+        d = ds['CFAD_DBZE94_CS']
+        dout = d.rename({'cosp_dbze': 'dbze', 'cosp_ht': 'alt40'})
     else:
         raise NameError('Variable %s not found'%(vname))
     

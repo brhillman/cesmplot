@@ -18,14 +18,17 @@ def main(inputfile, vname, outputfile=None, projection='robin'):
         figure, ax = pyplot.subplots(figsize=(5, 3))
 
         # get data; use cesm convenience function
-        data = cesmutils.get_var(ds, vname)
+        data = cesmutils.get_var(ds, vname).squeeze()
 
         # make sure we don't still have a time dimension
         # TODO: if a time dimension exists; make a movie? Or add command line
         # options to decide how to handle this.
         if 'time' in data.dims:
-            print('Warning: calculating time average')
-            data = data.mean('time', keep_attrs=True)
+            if len(data.time) > 1:
+                print('Warning: calculating time average')
+                data = data.mean('time', keep_attrs=True)
+            else:
+                data = data.squeeze()
 
         # figure out data limits
         vmin = data.min().values

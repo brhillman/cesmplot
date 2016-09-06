@@ -70,6 +70,7 @@ def get_var(ds, vname):
         dout = netcf
     elif vname.lower() == 'clmisr':
         dout = ds['CLD_MISR']
+        dout = dout.rename({'cosp_tau': 'tau', 'cosp_htmisr': 'cth'})
     elif vname.lower() == 'cltmisr':
         jhist = ds['CLD_MISR']
         jhist = jhist.where(jhist.cosp_tau > 0.3)
@@ -100,6 +101,7 @@ def get_var(ds, vname):
         dout.attrs['units'] = ds.CLD_MISR.units
     elif vname.lower() == 'clisccp':
         dout = ds['FISCCP1_COSP']
+        dout = dout.rename({'cosp_tau': 'tau', 'cosp_prs': 'plev'})
     elif vname.lower() == 'cltisccp':
         jhist = ds['FISCCP1_COSP']
         jhist = jhist.where(jhist.cosp_tau > 0.3)
@@ -182,60 +184,71 @@ def get_var(ds, vname):
         w = ds['CLTMODIS']
         dout = d / w
         dout.attrs = d.attrs
+        dout.attrs['long_name'] = 'MODIS-sim cloud top pressure'
     elif vname.lower() == 'reffclimodis':
         # Weighted by cloud amount in CAM run, need to divide here
         d = ds['REFFCLIMODIS']
         w = ds['CLIMODIS']
         dout = d / w
         dout.attrs = d.attrs
+        dout.attrs['long_name'] = 'MODIS-sim cloud ice effective radius'
     elif vname.lower() == 'reffclwmodis':
         # Weighted by cloud amount in CAM run, need to divide here
         d = ds['REFFCLWMODIS']
         w = ds['CLWMODIS']
         dout = d / w
         dout.attrs = d.attrs
+        dout.attrs['long_name'] = 'MODIS-sim cloud liquid effective radius'
     elif vname.lower() == 'tauilogmodis':
         # Weighted by cloud amount in CAM run, need to divide here
         d = ds['TAUILOGMODIS']
         w = ds['CLIMODIS']
         dout = 10 ** (d / w)
         dout.attrs = d.attrs
+        dout.attrs['long_name'] = 'MODIS-sim log-mean ice cloud optical depth'
     elif vname.lower() == 'tauwlogmodis':
         # Weighted by cloud amount in CAM run, need to divide here
         d = ds['TAUWLOGMODIS']
         w = ds['CLWMODIS']
         dout = 10 ** (d / w)
         dout.attrs = d.attrs
+        dout.attrs['long_name'] = 'MODIS-sim log-mean liquid cloud optical depth'
     elif vname.lower() == 'tautlogmodis':
         # Weighted by cloud amount in CAM run, need to divide here
         d = ds['TAUTLOGMODIS']
         w = ds['CLTMODIS']
         dout = 10 ** (d / w)
         dout.attrs = d.attrs
+        dout.attrs['long_name'] = 'MODIS-sim log-mean total cloud optical depth'
     elif vname.lower() == 'tauimodis':
         # Weighted by cloud amount in CAM run, need to divide here
         d = ds['TAUIMODIS']
         w = ds['CLIMODIS']
         dout = d / w
         dout.attrs = d.attrs
+        dout.attrs['long_name'] = 'MODIS-sim linear-mean ice cloud optical depth'
     elif vname.lower() == 'tauwmodis':
         # Weighted by cloud amount in CAM run, need to divide here
         d = ds['TAUWMODIS']
         w = ds['CLWMODIS']
         dout = d / w
         dout.attrs = d.attrs
+        dout.attrs['long_name'] = 'MODIS-sim linear-mean liquid cloud optical depth'
     elif vname.lower() == 'tautmodis':
         # Weighted by cloud amount in CAM run, need to divide here
         d = ds['TAUTMODIS']
         w = ds['CLTMODIS']
         dout = d / w
         dout.attrs = d.attrs
+        dout.attrs['long_name'] = 'MODIS-sim linear-mean total cloud optical depth'
     # CloudSat fields from COSP
-    elif vname.lower() == 'cfadDbze94':
+    elif vname.lower() == 'cfaddbze94':
         d = ds['CFAD_DBZE94_CS']
         dout = d.rename({'cosp_dbze': 'dbze', 'cosp_ht': 'alt40'})
     else:
         raise NameError('Variable %s not found'%(vname))
+
+    dout.name = vname
     
     return dout
 

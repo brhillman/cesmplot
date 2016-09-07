@@ -19,7 +19,7 @@ def main(inputfile, outputdir):
                'tautlogmodis', 'tauwlogmodis', 'tauilogmodis',
                'tautmodis', 'tauwmodis', 'tauimodis',
                'reffclwmodis', 'reffclimodis',
-               #'CLDTOT_CS', 'CLDTOT_CS2', 
+               'CLDTOT_CS', 'CLDTOT_CS2', 
                'CLDTOT_CAL', 'CLDLOW_CAL', 'CLDMED_CAL', 'CLDHGH_CAL')
 
     histvars = ('clmodis', 'clmisr', 'clisccp', 'cfadDbze94')
@@ -34,8 +34,11 @@ def main(inputfile, outputdir):
     with xarray.open_dataset(inputfile, decode_times=False) as ds:
 
         # calculate time-average
-        print('Calculate time-average...')
-        ds = ds.mean('time', keep_attrs=True).squeeze()
+        if 'time' in ds.dims and len(ds.time) > 1:
+            print('Calculate time-average...')
+            ds = ds.mean('time', keep_attrs=True).squeeze()
+        else:
+            ds = ds.squeeze()
 
         # get case name
         cn = ds.case
@@ -44,6 +47,9 @@ def main(inputfile, outputdir):
         print('Plot 2D joint histograms...')
         for vn in histvars:
             for region in region_bnds.keys():
+                print('Plotting variable %s, region %s'%(vn, region))
+
+                # get data
                 d = cesmutils.get_var(ds, vn)
 
                 # mask data outside region
@@ -75,6 +81,14 @@ def main(inputfile, outputdir):
 
                 # label plot
                 ax.set_title('%s %s'%(cn, region))
+
+                # put cloud fraction on plot
+                if 'tau' in d.dims:
+                    cf = d.where(d.tau > 0.3).sum()
+                    label = r'$\mathregular{C_{\tau > 0.3} = %.1f}$'%cf.values
+                    ax.text(0.99, 0.99, label,
+                            transform=ax.transAxes,
+                            ha='right', va='top')
 
                 figname = '%s/%s.%s.%s'%(outputdir, vn, cn, region)
                 figure.savefig(figname + '.pdf', format='pdf', bbox_inches='tight')

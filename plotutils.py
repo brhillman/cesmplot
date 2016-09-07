@@ -7,9 +7,9 @@ cmap_full = 'bone_r'
 cmap_diff = 'RdBu_r'
 
 clevels = {'cfadDbze94': numpy.linspace(0, 0.1, 21),
-           'clmisr': numpy.linspace(0, 10, 21),
-           'clisccp': numpy.linspace(0, 10, 21),
-           'clmodis': numpy.linspace(0, 10, 21)}
+           'clmisr': numpy.linspace(0, 5, 21),
+           'clisccp': numpy.linspace(0, 5, 21),
+           'clmodis': numpy.linspace(0, 5, 21)}
 dlevels = {'cfdaDbze94': numpy.linspace(-0.05, 0.05)}
 
 
@@ -85,7 +85,6 @@ def plot_jointhist(data, **kwargs):
     ax = pyplot.gca()
 
     # make plot
-    print(data.name)
     if data.min() < 0 and data.max() > 0:
         if data.name in dlevels.keys():
             vmin = dlevels[data.name][0]

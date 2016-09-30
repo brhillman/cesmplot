@@ -20,14 +20,15 @@ CASES := FSPCAMs.sp20.ne30_ne30.test FSPCAMm.sp20.ne30_ne30.test
 NAME := test
 
 # Lists of variables to plot
-map_vars := cltmisr cllmisr clmmisr clhmisr \
-           cltisccp cllisccp clmisccp clhisccp \
-           cltmodis cllmodis clmmodis clhmodis \
-           clwmodis climodis iwpmodis lwpmodis pctmodis \
-           tautlogmodis tauwlogmodis tauilogmodis \
-           tautmodis tauwmodis tauimodis reffclwmodis reffclimodis \
-           CLDTOT_CS CLDTOT_CS2 \
-           CLDTOT_CAL CLDLOW_CAL CLDMED_CAL CLDHGH_CAL 
+map_vars := \
+		cltmisr cllmisr clmmisr clhmisr \
+		cltisccp cllisccp clmisccp clhisccp \
+		cltmodis cllmodis clmmodis clhmodis \
+		clwmodis climodis iwpmodis lwpmodis pctmodis \
+		tautlogmodis tauwlogmodis tauilogmodis \
+		tautmodis tauwmodis tauimodis reffclwmodis reffclimodis \
+		CLDTOT_CS CLDTOT_CS2 \
+		CLDTOT_CAL CLDLOW_CAL CLDMED_CAL CLDHGH_CAL 
 jhist_vars := clmisr clisccp clmodis cfadDbze94
 
 # Build lists of plots to make
@@ -48,6 +49,11 @@ $(OBS_ROOT)/clmisr.misr-ipsl.%_climo.nc: $(MISR_ROOT)/clMISR_*.nc
 	./make_climo $* $@ $^
 
 # Rules to make different kinds of plots
+# TODO: we need some intermediate rules to combine files for each case or make
+# climatologies first when output for each case spans multiple files.
+# In particular this would be nice for zonal means so we can plot error bars for
+# sampling uncertainty or variability, and possibly things like hatching on map
+# plots for significance.
 $(GRAPHICS)/$(NAME)/%.maps.pdf: \
 		$(foreach CASE, $(CASES), $(ARCHIVE)/$(CASE)/atm/hist/*.nc)
 	@mkdir -p $(dir $@)

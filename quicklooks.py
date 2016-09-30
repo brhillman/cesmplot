@@ -3,7 +3,9 @@ import os, sys
 import numpy, xarray
 import matplotlib; matplotlib.use('Agg')
 from matplotlib import pyplot
-import plotutils, cesmutils
+import cesmutils
+from plot_maps import plot_map
+from plot_jhists import plot_jhist
 import seaborn; seaborn.set(style='white')
 
 # TODO: add option to just pick off a single time?
@@ -73,7 +75,7 @@ def main(inputfile, outputdir):
                     vmin = 0; vmax = 0.1
                 else:
                     vmin = None; vmax = None
-                pl = plotutils.plot_jointhist(d, )#vmin=vmin, vmax=vmax)
+                pl = plot_jhist(d, )#vmin=vmin, vmax=vmax)
 
                 # add a colorbar
                 cb = pyplot.colorbar(pl, orientation='vertical',
@@ -106,7 +108,7 @@ def main(inputfile, outputdir):
 
             # plot data
             figure, ax = pyplot.subplots()
-            pl = plotutils.plotmap(
+            pl = plot_map(
                 x, y, d, cmap='plasma',
                 levels=numpy.linspace(d.min().values, d.max().values, 21), 
                 extend='both'

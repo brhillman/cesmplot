@@ -1,0 +1,68 @@
+obs_root = /home/bhillma/data/amwg/obs_data_20140804
+model_root = /home/bhillma/data/spcam/archive
+graphics_root = graphics
+remote_host = hillmanb@lab1.atmos.washington.edu
+remote_dir = ~/public_html/diagnostics/spcam
+
+plots: \
+	$(graphics_root)/cfadDbze94.jhist.pdf
+
+FSPCAMs.01.nc: $(model_root)/FSPCAMs.sp20.ne30_ne30.test/atm/hist/*.0001-01.nc
+	ncatted -O -a case,global,o,c,'FSPCAMs' $< $@
+	ncatted -O -a long_name,cosp_ht,o,c,'Altitude' $@
+	ncatted -O -a long_name,cosp_dbze,o,c,'Radar reflectivity' $@
+
+FSPCAMm.01.nc: $(model_root)/FSPCAMm.sp20.ne30_ne30.test/atm/hist/*.0001-01.nc
+	ncatted -O -a case,global,o,c,'FSPCAMm' $< $@
+	ncatted -O -a long_name,cosp_ht,o,c,'Altitude' $@
+	ncatted -O -a long_name,cosp_dbze,o,c,'Radar reflectivity' $@
+
+MISR.01.nc: $(obs_root)/MISRCOSP_01_climo.nc
+	ncwa -O -a time $< $@
+	ncrename -O -d misr_tau,tau -v misr_tau,tau -v misr_tau_bnds,tau_bnds $@
+	ncrename -O -d misr_cth,cth -v misr_cth,cth -v misr_cth_bnds,cth_bnds $@
+	ncrename -O -v CLMISR,clmisr $@
+	ncatted -O -a case,global,o,c,'MISR' $@
+
+FSPCAMs.%.arctic.nc: FSPCAMs.%.nc
+	ncwa -O -a ncol -B 'lat > 70.0' $< $@
+	ncatted -O -a region,global,o,c,'Arctic' $@
+
+FSPCAMm.%.arctic.nc: FSPCAMm.%.nc
+	ncwa -O -a ncol -B 'lat > 70.0' $< $@
+	ncatted -O -a region,global,o,c,'Arctic' $@
+
+cloudsat.%.arctic.nc: cloudsat.%.nc
+	ncwa -O -a lat,lon -B 'lat > 70.0' $< $@
+	ncatted -O -a region,global,o,c,'Arctic' $@
+
+cloudsat.01.nc: $(obs_root)/CLOUDSATCOSP_01_climo.nc
+	ncwa -O -a time $< $@
+	ncrename -O -d cosp_dbze,dbze -v cosp_dbze,dbze -v cosp_dbze_bnds,dbze_bnds $@
+	ncrename -O -d cosp_ht,alt40 -v cosp_ht,alt40 -v cosp_ht_bnds,alt40_bnds $@
+	ncrename -O -v CFAD_DBZE94_CS,cfadDbze94 $@
+	ncatted -O -a case,global,o,c,'CloudSat' $@
+	ncatted -O -a long_name,alt40,o,c,'Altitude' $@
+	ncatted -O -a long_name,dbze,o,c,'Radar reflectivity' $@
+
+$(graphics_root)/cltmisr.maps.pdf: FSPCAMs.01.nc FSPCAMm.01.nc MISR.01.nc
+	plot2d.py cltmisr $@ $^
+
+$(graphics_root)/cllmisr.maps.pdf: FSPCAMs.01.nc FSPCAMm.01.nc MISR.01.nc
+	plot2d.py cllmisr $@ $^
+
+$(graphics_root)/clmmisr.maps.pdf: FSPCAMs.01.nc FSPCAMm.01.nc MISR.01.nc
+	plot2d.py clmmisr $@ $^
+
+$(graphics_root)/clhmisr.maps.pdf: FSPCAMs.01.nc FSPCAMm.01.nc MISR.01.nc
+	plot2d.py clhmisr $@ $^
+
+$(graphics_root)/cfadDbze94.jhist.pdf: \
+		FSPCAMs.01.arctic.nc FSPCAMm.01.arctic.nc cloudsat.01.arctic.nc
+	plot_jhist.py cfadDbze94 $@ $^
+
+copy:
+	rsync -avuP $(graphics_root)/* $(remote_host):$(remote_dir)/
+
+clean:
+	rm -f $(graphics_root)/*.*

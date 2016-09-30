@@ -72,33 +72,33 @@ def get_var(ds, vname):
         dout = ds['CLD_MISR']
         dout = dout.rename({'cosp_tau': 'tau', 'cosp_htmisr': 'cth'})
     elif vname.lower() == 'cltmisr':
-        jhist = ds['CLD_MISR']
-        jhist = jhist.where(jhist.cosp_tau > 0.3)
-        d = jhist.sum(dim=('cosp_tau', 'cosp_htmisr'), keep_attrs=True)
-        dout = d.where(jhist.notnull().sum(dim=('cosp_tau', 'cosp_htmisr')) > 0)
+        jhist = get_var(ds, 'clmisr') #ds['CLD_MISR']
+        jhist = jhist.where(jhist.tau > 0.3)
+        d = jhist.sum(dim=('tau', 'cth'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('tau', 'cth')) > 0)
         dout.attrs['long_name'] = 'Total cloud area'
-        dout.attrs['units'] = ds.CLD_MISR.units
+        dout.attrs['units'] = get_var(ds, 'clmisr').attrs['units']
     elif vname.lower() == 'cllmisr':
-        jhist = ds['CLD_MISR']
-        jhist = jhist.where((jhist.cosp_tau > 0.3) & (jhist.cosp_htmisr > 0) & (jhist.cosp_htmisr < 3))
-        d = jhist.sum(dim=('cosp_tau', 'cosp_htmisr'), keep_attrs=True)
-        dout = d.where(jhist.notnull().sum(dim=('cosp_tau', 'cosp_htmisr')) > 0)
+        jhist = get_var(ds, 'clmisr') #ds['CLD_MISR']
+        jhist = jhist.where((jhist.tau > 0.3) & (jhist.cth > 0) & (jhist.cth < 3))
+        d = jhist.sum(dim=('tau', 'cth'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('tau', 'cth')) > 0)
         dout.attrs['long_name'] = 'Low-topped cloud area'
-        dout.attrs['units'] = ds.CLD_MISR.units
+        dout.attrs['units'] = get_var(ds, 'clmisr').attrs['units']
     elif vname.lower() == 'clmmisr':
-        jhist = ds['CLD_MISR']
-        jhist = jhist.where((jhist.cosp_tau > 0.3) & (jhist.cosp_htmisr > 3) & (jhist.cosp_htmisr < 7))
-        d = jhist.sum(dim=('cosp_tau', 'cosp_htmisr'), keep_attrs=True)
-        dout = d.where(jhist.notnull().sum(dim=('cosp_tau', 'cosp_htmisr')) > 0)
+        jhist = get_var(ds, 'clmisr') #ds['CLD_MISR']
+        jhist = jhist.where((jhist.tau > 0.3) & (jhist.cth > 3) & (jhist.cth < 7))
+        d = jhist.sum(dim=('tau', 'cth'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('tau', 'cth')) > 0)
         dout.attrs['long_name'] = 'Mid-topped cloud area'
-        dout.attrs['units'] = ds.CLD_MISR.units
+        dout.attrs['units'] = get_var(ds, 'clmisr').attrs['units']
     elif vname.lower() == 'clhmisr':
-        jhist = ds['CLD_MISR']
-        jhist = jhist.where((jhist.cosp_tau > 0.3) & (jhist.cosp_htmisr > 7))
-        d = jhist.sum(dim=('cosp_tau', 'cosp_htmisr'), keep_attrs=True)
-        dout = d.where(jhist.notnull().sum(dim=('cosp_tau', 'cosp_htmisr')) > 0)
+        jhist = get_var(ds, 'clmisr') #ds['CLD_MISR']
+        jhist = jhist.where((jhist.tau > 0.3) & (jhist.cth > 7))
+        d = jhist.sum(dim=('tau', 'cth'), keep_attrs=True)
+        dout = d.where(jhist.notnull().sum(dim=('tau', 'cth')) > 0)
         dout.attrs['long_name'] = 'High-topped cloud area'
-        dout.attrs['units'] = ds.CLD_MISR.units
+        dout.attrs['units'] = get_var(ds, 'clmisr').attrs['units']
     elif vname.lower() == 'clisccp':
         dout = ds['FISCCP1_COSP']
         dout = dout.rename({'cosp_tau': 'tau', 'cosp_prs': 'plev'})
@@ -243,12 +243,17 @@ def get_var(ds, vname):
         dout.attrs['long_name'] = 'MODIS-sim linear-mean total cloud optical depth'
     # CloudSat fields from COSP
     elif vname.lower() == 'cfaddbze94':
-        d = ds['CFAD_DBZE94_CS']
+        d = 100.0 * ds['CFAD_DBZE94_CS']
         dout = d.rename({'cosp_dbze': 'dbze', 'cosp_ht': 'alt40'})
     else:
         raise NameError('Variable %s not found'%(vname))
 
     dout.name = vname
+
+    # fix units
+    if 'units' in dout.attrs:
+        if dout.attrs['units'] == 'percent': 
+            dout.attrs['units'] = '%'
     
     return dout
 

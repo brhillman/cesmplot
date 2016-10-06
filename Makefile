@@ -28,7 +28,8 @@ map_vars := \
 		tautlogmodis tauwlogmodis tauilogmodis \
 		tautmodis tauwmodis tauimodis reffclwmodis reffclimodis \
 		CLDTOT_CS CLDTOT_CS2 \
-		CLDTOT_CAL CLDLOW_CAL CLDMED_CAL CLDHGH_CAL 
+		CLDTOT_CAL CLDLOW_CAL CLDMED_CAL CLDHGH_CAL \
+		CLDLOW CLDMED CLDHGH CLDTOT
 jhist_vars := clmisr clisccp clmodis cfadDbze94
 
 # Build lists of plots to make

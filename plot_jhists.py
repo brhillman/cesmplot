@@ -66,6 +66,28 @@ def plot_jhist(data, **kwargs):
     ax.set_ylabel(data[ydim].long_name)
 
     return pl
+
+
+def area_average(da, lat):
+    # calculate weights
+    wgt = numpy.cos(numpy.pi * lat / 180) * da / da
+
+    # find dimensions to average over (could be unstructured or structured)
+    if 'lat' in da.dims and 'lon' in da.dims:
+        dims = ('lat', 'lon')
+    elif 'ncol' in da.dims:
+        dims = ('ncol',)
+    else:
+        raise ValueError('No valid dimensions to average over.')
+
+    # do averaging and copy attributes
+    avg = (wgt * da).sum(dim=dims) / wgt.sum(dim=dims)
+    avg.attrs = da.attrs
+
+    # return area-weighted average of data
+    return avg
+
+
 def main(nrows: ('number of rows', 'option', None, int), 
          ncols: ('number of columns', 'option', None, int), 
          vname, outputfile, *inputfiles):
@@ -76,9 +98,13 @@ def main(nrows: ('number of rows', 'option', None, int),
     # get data; use cesm convenience function
     dataarrays = [get_var(ds, vname).squeeze() for ds in datasets]
 
+    # calculate area-weighted averages
+    dataarrays = [area_average(da, ds.lat) 
+                  for (da, ds) in zip(dataarrays, datasets)]
+
+    # limit dbze dimension on CloudSat CFADs
     dataarrays = [da.sel(dbze=slice(-27.5, None))
                   if 'dbze' in da.dims else da for da in dataarrays]
-
 
     # get data limits
     vmin = min([d.min().values for d in dataarrays])

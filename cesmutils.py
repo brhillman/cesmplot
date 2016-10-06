@@ -245,6 +245,7 @@ def get_var(ds, vname):
     elif vname.lower() == 'cfaddbze94':
         d = 100.0 * ds['CFAD_DBZE94_CS']
         dout = d.rename({'cosp_dbze': 'dbze', 'cosp_ht': 'alt40'})
+        dout.attrs = ds['CFAD_DBZE94_CS'].attrs
     else:
         raise NameError('Variable %s not found'%(vname))
 
@@ -253,6 +254,9 @@ def get_var(ds, vname):
     # fix units
     if 'units' in dout.attrs:
         if dout.attrs['units'] == 'percent': 
+            dout.attrs['units'] = '%'
+        elif dout.attrs['units'] == 'fraction':
+            dout[:] = 100.0 * dout
             dout.attrs['units'] = '%'
     
     return dout

@@ -267,5 +267,5 @@ def get_datetimes(ds):
     dates = ds.date
     datesecs = ds.datesec
     hours = datesecs / 3600
-    fulldates = ['%i%02i'%(d, h) for (d, h) in zip(dates, hours)]
+    fulldates = ['%08i%02i'%(d, h) for (d, h) in zip(dates, hours)]
     return pandas.to_datetime(fulldates, format='%Y%m%d%H')

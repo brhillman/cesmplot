@@ -2,6 +2,9 @@
 # these should go into a separate package
 import numpy, xarray
 import nclpy  # my port of NCL fortran routines to Python
+from sys import stdout
+from datetime import datetime, timedelta
+import pandas
 
 def area_average(vdata, lat):
     weights = numpy.cos(numpy.pi * lat / 180.0) * vdata / vdata
@@ -261,11 +264,82 @@ def get_var(ds, vname):
     
     return dout
 
-
 def get_datetimes(ds):
+
+    # find time coordinate
+    time = ds.time
+
+    # find base time from time units; time should be in format something like
+    # 'days since xxxx-xx-xx xx:xx:xx' and we need to parse this string to see
+    # if offset is seconds, hours, minutes, days, months, years, and to get the
+    # base time.
+    # TODO: make this more flexible to allow for hours since, minutes, since, etc.
+    # in the units string.
+    if 'days since' in ds.time.units:
+        # convert base time from units string to a datetime object
+        date = ds.time.units.split(' ')[2]
+        time = ds.time.units.split(' ')[3]
+        datetime_base = datetime.strptime(date + ' ' + time, '%Y-%m-%d %H:%M:%S')
+
+        datetime_list = []
+        for i in range(ds.time.size):
+            # find offset for this time index
+            # prefer to use time_bnds if it exists, because when 'time' is actually
+            # the end of an averaging period this should give us a date in the middle
+            # of the averaging period
+            if 'time_bnds' in ds.variables.keys():
+                datetime_offset = timedelta(days=numpy.asscalar(ds.time_bnds.isel(time=i).mean().values))
+            else:
+                datetime_offset = timedelta(days=numpy.asscalar(ds.time.isel(time=i).values))
+
+            datetime_list.append(datetime_base + datetime_offset)
+        
+    else:
+        raise ValueError('We do not know how to decode units', ds.time.units)
+
+    # return a datetime64 object
+    # we need to check and make sure that the year is within the valid range though,
+    # because otherwise when this gets added to an xarray object an error will be
+    # raised
+    ymin = pandas.Timestamp.min.year
+    for i, d in enumerate(datetime_list):
+        if d.year < ymin:
+            print('Warning: artificially modifying year to play nice with pandas...')
+            stdout.flush()
+            datetime_list[i] = d.replace(year=(d.year + ymin))
+
+    return pandas.to_datetime(datetime_list)
+
+
+def get_datetimes_(ds):
     import pandas
-    dates = ds.date
+    from datetime import datetime, timedelta
+
+    # make sure date falls within pandas datetime limits
+    # TODO: check and fix this logic
+    if any(ds.date < 1e4 * pandas.Timestamp.min.year):
+        print('Warning: artificially shifting dates to fall within Pandas limits')
+        dates = ds.date + 1e4 * pandas.Timestamp.min.year
+    else:
+        dates = ds.date
+
+    # convert time in seconds to hours
     datesecs = ds.datesec
     hours = datesecs / 3600
+
+    # get full date strings with date and hours
     fulldates = ['%08i%02i'%(d, h) for (d, h) in zip(dates, hours)]
-    return pandas.to_datetime(fulldates, format='%Y%m%d%H')
+
+    # use pandas to convert to datetime objects
+    datetimes = pandas.to_datetime(fulldates, format='%Y%m%d%H')
+
+    # if day, hour, minute, and second are all zero, then we suspect this is
+    # monthly averaged output from CESM, which sets the 'time' to be the first
+    # day of the next month but includes averages from the previous month, so
+    # we should offset
+    datetimes = numpy.where(
+        (datetimes.day == 1) & (datetimes.hour == 0) & (datetimes.minute == 0),
+        ds_in['time'] - DateOffset(days=15), ds_in['time']
+    )
+    print(ds_in.time); stdout.flush()
+

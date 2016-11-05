@@ -70,13 +70,17 @@ def plot_map_unstructured(lon, lat, data, projection='robin', **kw_args):
 
 
 
-def read_data(inputfile):
+def read_data(inputfile, time_index=0):
     ds = xarray.open_dataset(inputfile, decode_times=False)
     
     if 'time' in ds.dims:
         if len(ds.time) > 1:
-            print('Warning: calculating time average')
-            ds = ds.mean('time', keep_attrs=True)
+            if time_index < 0:
+                print('Warning: calculating time average')
+                ds = ds.mean('time', keep_attrs=True)
+            else:
+                print('Selecting time index = %i'%(time_index))
+                ds = ds.isel(time=time_index)
         else:
             ds = ds.squeeze()
 
@@ -89,10 +93,14 @@ def read_data(inputfile):
 # to calculate various derived fields.
 def main(nrows: ('number of rows in figure', 'option', None, int), 
          ncols: ('number of columns in figure', 'option', None, int), 
+         tind: ('time index; tind < 0 -> average, tind >= 0 -> index', 'option', None, int),
          vname, outputfile, *inputfiles):
 
     # open datasets
-    datasets = [read_data(f) for f in inputfiles]
+    if tind is not None:
+        datasets = [read_data(f, time_index=tind) for f in inputfiles]
+    else:
+        datasets = [read_data(f) for f in inputfiles]
 
     # get data; use cesm convenience function
     dataarrays = [cesmutils.get_var(ds, vname).squeeze() for ds in datasets]
@@ -120,7 +128,7 @@ def main(nrows: ('number of rows in figure', 'option', None, int),
 
         ax = figure.add_axes(numpy.atleast_1d(axes).ravel()[icase])
         pl = plot_map(ds.lon, ds.lat, da, cmap=cmap, extend='both',
-                               levels=numpy.linspace(vmin, vmax, 21))
+                      levels=numpy.linspace(vmin, vmax, 21))
 
         # calculate statistics
         # TODO: make weighted statistics

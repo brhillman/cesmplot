@@ -6,13 +6,17 @@ from matplotlib import pyplot
 import seaborn; seaborn.set(style='white')
 from cesmutils import get_var
 
-def read_data(inputfile):
+def read_data(inputfile, tind=0):
     ds = xarray.open_dataset(inputfile, decode_times=False)
     
     if 'time' in ds.dims:
         if len(ds.time) > 1:
-            print('Warning: calculating time average')
-            ds = ds.mean('time', keep_attrs=True)
+            if tind < 0:
+                print('Warning: calculating time average')
+                ds = ds.mean('time', keep_attrs=True)
+            else:
+                print('Selecting time index %i'%tind)
+                ds = ds.isel(time=tind)
         else:
             ds = ds.squeeze()
 
@@ -90,10 +94,14 @@ def area_average(da, lat):
 
 def main(nrows: ('number of rows', 'option', None, int), 
          ncols: ('number of columns', 'option', None, int), 
+         tind: ('time index (< 0: average; >= 0: index)', 'option', None, int),
          vname, outputfile, *inputfiles):
 
     # open datasets
-    datasets = [read_data(f) for f in inputfiles]
+    if tind is not None:
+        datasets = [read_data(f, tind=tind) for f in inputfiles]
+    else:
+        datasets = [read_data(f) for f in inputfiles]
 
     # get data; use cesm convenience function
     dataarrays = [get_var(ds, vname).squeeze() for ds in datasets]

@@ -84,6 +84,9 @@ def read_data(inputfile, time_index=0):
         else:
             ds = ds.squeeze()
 
+    if 'longitude' in ds.dims: ds = ds.rename({'longitude': 'lon'})
+    if 'latitude' in ds.dims: ds = ds.rename({'latitude': 'lat'})
+
     return ds
 
 
@@ -138,12 +141,20 @@ def main(nrows: ('number of rows in figure', 'option', None, int),
         global_stddev = da.std()
 
         # label plot
-        ax.set_title('%s (%.1f)'%(ds.case, global_mean))
+        if 'case' in ds.attrs.keys():
+            case = ds.case
+        else:
+            case = icase
+        ax.set_title('%s (%.1f)'%(case, global_mean))
 
+    if 'long_name' in da.attrs.keys():
+        long_name = da.long_name
+    else:
+        long_name = ""
     cb = pyplot.colorbar(pl, ax=numpy.atleast_1d(axes).ravel().tolist(),
                          orientation='horizontal', 
                          fraction=0.05, pad=0.02,
-                         label='%s (%s)'%(da.long_name, da.units))
+                         label='%s (%s)'%(long_name, da.units))
 
     # save figure
     figure.savefig(outputfile, bbox_inches='tight')

@@ -131,7 +131,7 @@ fi
 # each year in which we found valid dates. The time series of seasonal averages
 # is then used to calculate the climatologies. TODO: add option to calculate the
 # climatological standard deviation.
-echo "Calculating seasonal averages for each season from ${year1} to ${year2}..."
+echo "Calculating ${season} seasonal averages for each year from ${year1} to ${year2}..."
 nmonths=${#months[@]}
 years=(`seq ${year1} ${year2}`)
 found_years=()

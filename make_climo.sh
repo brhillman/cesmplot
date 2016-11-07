@@ -138,12 +138,15 @@ years=(`seq ${year1} ${year2}`)
 found_years=()
 for year in ${years[@]}; do
     # find date range for this season
+    # the $((10#$year)) construct strips any leading zeros from the year string
+    # and the printf '%04i' $year puts them back to format the date string
+    # properly.
     if [ ${season} == 'DJF' ]; then
-        y1=$((year - 1))
+        y1=`printf '%04i' $((10#$year - 1))`
     else
-        y1=${year}
+        y1=`printf '%04i' $((10#$year))`
     fi
-    y2=${year}
+    y2=`printf '%04i' $((10#$year))`
     date1=${y1}-${months[0]}-01
     date2=${y2}-${months[${nmonths}-1]}-31
 
@@ -158,6 +161,12 @@ for year in ${years[@]}; do
         rm -f ${seasonal_mean}.*.tmp
     fi
 done
+
+# make sure we successfully calculated some seasonal means
+if [ ${#found_years[@]} -eq 0 ]; then
+    echo "No seasonal means were calculated; exiting."
+    exit 1
+fi
 
 # calculate climatology from seasonal means
 echo "Calculating seasonal climatology from seasonal means from \

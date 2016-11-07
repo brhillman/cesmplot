@@ -82,7 +82,8 @@ while [ "$1" != "" ]; do
         -h | --help)
             printf "${help_msg}"; exit 0;;
         -*)
-            printf "${usage}"; exit 1;;
+            printf "ERROR: unrecognized option $1.\n"
+            printf "${usage}\n"; exit 1;;
         *)
             break;;
     esac

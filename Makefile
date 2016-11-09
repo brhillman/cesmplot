@@ -47,6 +47,11 @@ map_vars := \
 		CLDTOT_CAL_ICE CLDLOW_CAL_ICE CLDMED_CAL_ICE CLDHGH_CAL_ICE \
 		CLDTOT_CAL_UN CLDLOW_CAL_UN CLDMED_CAL_UN CLDHGH_CAL_UN \
 		TGCLDCWP TGCLDIWP TGCLDLWP
+# cltcalipso cllcalioso clmcalipso clhcalipso \
+# cltcalipsoliq cllcaliosoliq clmcalipsoliq clhcalipsoliq \
+# cltcalipsoice cllcaliosoice clmcalipsoice clhcalipsoice \
+# cltcalipsoun cllcaliosoun clmcalipsoun clhcalipsoun \
+  
 jhist_vars := clmisr clisccp clmodis cfadDbze94
 
 # Build lists of plots to make
@@ -60,27 +65,36 @@ calipso_vars := cltcalipso cllcalipso clmcalipso clhcalipso \
 	cltcalipsoun cllcalipsoun clmcalipsoun clhcalipsoun 
 
 calipso_climos := \
-	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).climo01.nc) \
-	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).climo02.nc) \
-	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).climo03.nc) \
-	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).climo04.nc) \
-	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).climo05.nc) \
-	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).climo06.nc) \
-	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).climo07.nc) \
-	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).climo08.nc) \
-	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).climo09.nc) 
-
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).01_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).02_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).03_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).04_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).05_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).06_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).07_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).08_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).09_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).10_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).11_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).12_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).DJF_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).MAM_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).JJA_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).SON_climo.nc) \
+	$(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).ANN_climo.nc) 
+#	$(foreach sea, $(seasons), $(foreach var, $(calipso_vars), $(OBS_CLIMO)/$(var).calipso.$(sea)_climo.nc))
+ 	
 # Rules to make OBS climo files look like we need them to
 # TODO: write make_climo script to accept 
 # 	1) a season to average over; 
 # 	2) an output file name, and 
 # 	3) a list of input files to search for appropriate months
 months := 01 02 03 04 05 06 07 08 09 10 11 12 
-seasons := DJF JJA SON MAM ANN
+seasons := $(months) DJF JJA SON MAM ANN
 
 $(OBS_ROOT)/clmisr.misr-ipsl.%_climo.nc: $(MISR_ROOT)/clMISR_*.nc
 	@mkdir -p $(dir $@)
-	./make_climo $* $@ $^
+	./make_climo.sh $* $@ $^
 
 # Rules to make different kinds of plots
 # TODO: we need some intermediate rules to combine files for each case or make
